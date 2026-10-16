@@ -54,9 +54,12 @@ function validatePassword(p) {
   return p.length >= 8;
 }
 
-function sanitizeGrades(grades) {
+const Grade = require('../models/Grade');
+
+async function sanitizeGrades(grades) {
   if (!Array.isArray(grades)) return [];
-  const allowed = ['grade1','grade2','grade3','grade4','grade5','grade6','grade7','grade8','grade9','grade10','grade11','grade12'];
+  const valid = await Grade.find({}).select('name').lean();
+  const allowed = valid.map(g => g.name);
   const out = [];
   for (const g of grades) {
     if (typeof g === 'string' && allowed.includes(g) && !out.includes(g)) {
@@ -182,7 +185,7 @@ router.post('/admins', adminWriteLimiter, requireLeadAdmin, async (req, res) => 
       return res.status(400).json({ error: 'اسم المستخدم موجود بالفعل' });
     }
     const leadFlag = isLeadAdmin === true;
-    const finalGrades = leadFlag ? [] : sanitizeGrades(allowedGrades);
+    const finalGrades = leadFlag ? [] : await sanitizeGrades(allowedGrades);
     const user = new User({
       username: cleanUser,
       password,
@@ -250,7 +253,7 @@ router.put('/admins/:id', adminWriteLimiter, requireLeadAdmin, async (req, res) 
     if (user.isLeadAdmin === true) {
       user.allowedGrades = [];
     } else if (allowedGrades !== undefined) {
-      user.allowedGrades = sanitizeGrades(allowedGrades);
+      user.allowedGrades = await sanitizeGrades(allowedGrades);
     }
     await user.save();
     return res.json({ success: true });
