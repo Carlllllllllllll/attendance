@@ -1882,6 +1882,8 @@
     if (e.target === this) closeStudentModal();
   });
 
+  let lastSelectedGrades = [];
+
   function handleRoleChange() {
     const isLead = document.querySelector('input[name="admin-modal-role"]:checked').value === 'lead';
     const normalLabel = document.getElementById('admin-role-normal-label');
@@ -1890,12 +1892,18 @@
     normalLabel.classList.toggle('checked', !isLead);
     leadLabel.classList.toggle('checked', isLead);
     if (isLead) {
+      // Save current selection before clearing
+      lastSelectedGrades = Array.from(document.querySelectorAll('#admin-modal-grades input[type="checkbox"]:checked')).map(cb => cb.value);
       gradesGroup.style.opacity = '0.5';
       gradesGroup.style.pointerEvents = 'none';
       document.querySelectorAll('#admin-modal-grades input[type="checkbox"]').forEach(cb => cb.checked = false);
     } else {
       gradesGroup.style.opacity = '1';
       gradesGroup.style.pointerEvents = 'auto';
+      // Restore previously selected grades for regular admin
+      document.querySelectorAll('#admin-modal-grades input[type="checkbox"]').forEach(cb => {
+        cb.checked = lastSelectedGrades.includes(cb.value);
+      });
     }
   }
 
