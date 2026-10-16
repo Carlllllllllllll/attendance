@@ -2006,8 +2006,8 @@
   async function loadAdmins() {
     try {
       const [gradesRes, adminsRes] = await Promise.all([
-        fetch(API + '/grades'),
-        fetch(API + '/auth/admins')
+        fetch(API + '/grades', { credentials: 'include' }),
+        fetch(API + '/auth/admins', { credentials: 'include' })
       ]);
       allGrades = await gradesRes.json();
       const admins = await adminsRes.json();
