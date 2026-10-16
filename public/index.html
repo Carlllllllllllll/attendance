@@ -1,0 +1,2082 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>نظام الحضور و الغياب و الغياب</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
+
+    :root {
+      --bg-base: #0a0e17;
+      --bg-surface: #111827;
+      --bg-elevated: #1a2332;
+      --bg-hover: #232e42;
+      --border: #1f2a3d;
+      --border-light: #2a374d;
+      --text-primary: #f1f5f9;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent: #22d3ee;
+      --accent-dim: #0891b2;
+      --accent-glow: rgba(34, 211, 238, 0.15);
+      --success: #34d399;
+      --success-dim: #059669;
+      --success-glow: rgba(52, 211, 153, 0.12);
+      --danger: #f87171;
+      --danger-dim: #dc2626;
+      --danger-glow: rgba(248, 113, 113, 0.12);
+      --warning: #fbbf24;
+      --purple: #a78bfa;
+      --radius: 14px;
+      --radius-sm: 10px;
+      --radius-xs: 8px;
+      --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+    body {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
+      background: var(--bg-base);
+      color: var(--text-primary);
+      direction: rtl;
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; font-family: inherit; }
+    input, select, textarea { font-family: inherit; }
+
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { flex-direction: column; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .gap-1 { gap: 0.5rem; }
+    .gap-2 { gap: 1rem; }
+    .gap-3 { gap: 1.5rem; }
+    .mb-1 { margin-bottom: 0.5rem; }
+    .mb-2 { margin-bottom: 1rem; }
+    .mb-3 { margin-bottom: 1.5rem; }
+    .mt-1 { margin-top: 0.5rem; }
+    .mt-2 { margin-top: 1rem; }
+    .w-full { width: 100%; }
+    .text-center { text-align: center; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.7rem 1.4rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 700;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+      border: 1px solid transparent;
+      letter-spacing: 0.01em;
+      touch-action: manipulation;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      color: #041016;
+      border-color: transparent;
+      box-shadow: 0 4px 15px -3px rgba(34, 211, 238, 0.4);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 8px 25px -3px rgba(34, 211, 238, 0.55);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border-color: var(--border-light);
+    }
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--text-muted);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, var(--danger) 0%, var(--danger-dim) 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px -3px rgba(248, 113, 113, 0.4);
+    }
+    .btn-danger:hover {
+      box-shadow: 0 8px 25px -3px rgba(248, 113, 113, 0.55);
+      transform: translateY(-1px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--accent);
+      color: var(--accent);
+    }
+    .btn-outline:hover {
+      background: var(--accent-glow);
+      box-shadow: 0 0 20px -5px var(--accent-glow);
+    }
+
+    .btn-sm { padding: 0.5rem 1rem; font-size: 0.82rem; }
+    .btn-xs { padding: 0.3rem 0.7rem; font-size: 0.75rem; border-radius: var(--radius-xs); }
+
+    .card {
+      background: var(--bg-surface);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 1.75rem;
+      margin-bottom: 1.5rem;
+      box-shadow: var(--shadow-sm);
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: var(--border-light); }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .card-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.3rem 0.85rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    .badge-green {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.25);
+    }
+    .badge-red {
+      background: var(--danger-glow);
+      color: var(--danger);
+      border: 1px solid rgba(248, 113, 113, 0.25);
+    }
+    .badge-blue {
+      background: rgba(34, 211, 238, 0.1);
+      color: var(--accent);
+      border: 1px solid rgba(34, 211, 238, 0.25);
+    }
+    .badge-purple {
+      background: rgba(167, 139, 250, 0.1);
+      color: var(--purple);
+      border: 1px solid rgba(167, 139, 250, 0.25);
+    }
+    .badge-gray {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-light);
+    }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 0.5rem;
+    }
+    .table th,
+    .table td {
+      padding: 0.9rem 1rem;
+      text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    .table th {
+      background: var(--bg-elevated);
+      font-weight: 700;
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 0.75rem 1rem;
+    }
+    .table tr:last-child td { border-bottom: none; }
+    .table tbody tr { transition: background 0.15s; }
+    .table tbody tr:hover { background: var(--bg-hover); }
+
+    .input-group {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .input-group input,
+    .input-group select { flex: 1; min-width: 180px; }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      letter-spacing: 0.01em;
+    }
+
+    input[type="text"],
+    input[type="password"],
+    input[type="date"],
+    input[type="email"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      font-size: 0.92rem;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+    input::placeholder, textarea::placeholder { color: var(--text-muted); }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+      background: var(--bg-surface);
+    }
+    input[type="file"] {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    input[type="file"]::file-selector-button {
+      background: var(--accent);
+      color: #041016;
+      border: none;
+      padding: 0.4rem 1rem;
+      border-radius: var(--radius-xs);
+      font-weight: 700;
+      font-family: inherit;
+      margin-left: 0.75rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    input[type="file"]::file-selector-button:hover { background: var(--accent-dim); }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      cursor: pointer;
+      padding: 0.5rem 0;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 1.15rem;
+      height: 1.15rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .sidebar {
+      width: 270px;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border);
+      padding: 2rem 1.25rem;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 2.5rem;
+      padding: 0 0.5rem;
+    }
+    .sidebar-brand-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 6px 20px -4px rgba(34, 211, 238, 0.5);
+      flex-shrink: 0;
+    }
+    .sidebar-brand-text { display: flex; flex-direction: column; }
+    .sidebar-brand-text strong {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    .sidebar-brand-text span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .sidebar-nav {
+      list-style: none;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .sidebar-nav li a {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      border: 1px solid transparent;
+      position: relative;
+    }
+    .sidebar-nav li a:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+    }
+    .sidebar-nav li a.active {
+      background: var(--accent-glow);
+      color: var(--accent);
+      border-color: rgba(34, 211, 238, 0.2);
+    }
+    .sidebar-nav li a.active::before {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 3px;
+      background: var(--accent);
+      border-radius: 3px;
+      box-shadow: 0 0 12px var(--accent);
+    }
+    .sidebar-nav .nav-icon { font-size: 1.1rem; width: 24px; text-align: center; }
+
+    .sidebar-footer {
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-align: center;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .main-content {
+      margin-right: 270px;
+      padding: 2rem 2.5rem 3rem;
+      min-height: 100vh;
+      background: var(--bg-base);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .topbar-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .topbar-actions {
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+    }
+    .user-chip {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 0.4rem 0.9rem 0.4rem 0.5rem;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .user-avatar {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      color: #041016;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .login-page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-base);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-page::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(34, 211, 238, 0.08) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .login-page::after {
+      content: '';
+      position: absolute;
+      bottom: -40%;
+      left: -20%;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(167, 139, 250, 0.06) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .login-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      padding: 3rem 2.5rem;
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+      z-index: 1;
+    }
+    .login-logo {
+      width: 64px;
+      height: 64px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1.5rem;
+      box-shadow: 0 12px 30px -8px rgba(34, 211, 238, 0.5);
+    }
+    .login-card h1 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+      color: var(--text-primary);
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .login-card .subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+
+    .alert {
+      padding: 0.9rem 1.2rem;
+      border-radius: var(--radius-sm);
+      margin-bottom: 1.2rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.6rem;
+      animation: slideDown 0.3s ease;
+      line-height: 1.4;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .alert-error {
+      background: var(--danger-glow);
+      color: var(--danger);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+    .alert-success {
+      background: var(--success-glow);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      align-items: center;
+      pointer-events: none;
+      width: 100%;
+      padding: 0 1rem;
+      max-width: 480px;
+    }
+    .toast {
+      pointer-events: auto;
+      width: 100%;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      gap: 0.6rem;
+      box-shadow: var(--shadow-lg);
+      animation: toastIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+      line-height: 1.4;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(-20px) scale(0.95); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .toast.toast-out {
+      animation: toastOut 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateY(0) scale(1); }
+      to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+    }
+    .toast-success {
+      background: var(--bg-surface);
+      color: var(--success);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      box-shadow: 0 10px 30px -5px rgba(52, 211, 153, 0.25), var(--shadow-lg);
+    }
+    .toast-error {
+      background: var(--bg-surface);
+      color: var(--danger);
+      border: 1px solid rgba(248, 113, 113, 0.4);
+      box-shadow: 0 10px 30px -5px rgba(248, 113, 113, 0.25), var(--shadow-lg);
+    }
+    .toast-info {
+      background: var(--bg-surface);
+      color: var(--accent);
+      border: 1px solid rgba(34, 211, 238, 0.4);
+      box-shadow: 0 10px 30px -5px rgba(34, 211, 238, 0.25), var(--shadow-lg);
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.75rem;
+    }
+    .stat-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.25rem;
+      text-align: center;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-light);
+      box-shadow: var(--shadow-md);
+    }
+    .stat-card:hover::before { opacity: 1; }
+    .stat-card .stat-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+    .stat-card h3 {
+      font-size: 2rem;
+      color: var(--accent);
+      margin-bottom: 0.2rem;
+      font-weight: 900;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+    }
+    .stat-card p {
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .student-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.85rem 1.1rem;
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      margin-bottom: 0.5rem;
+      transition: all 0.2s;
+      gap: 0.75rem;
+    }
+    .student-row:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-light);
+    }
+    .student-row .name {
+      font-weight: 700;
+      color: var(--text-primary);
+      font-size: 0.92rem;
+    }
+    .student-row .meta {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.25rem;
+    }
+    .admin-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+    .admin-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--purple));
+      opacity: 0.6;
+    }
+    .admin-card:hover {
+      border-color: var(--border-light);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+    .admin-card-head {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .admin-avatar {
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #041016;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+    .admin-avatar.lead {
+      background: linear-gradient(135deg, var(--purple) 0%, #7c3aed 100%);
+      color: #fff;
+    }
+    .admin-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .admin-info strong {
+      display: block;
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 0.15rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .admin-info .role {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .admin-grades {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+      min-height: 28px;
+    }
+    .admin-actions {
+      display: flex;
+      gap: 0.5rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border);
+    }
+    .admin-actions .btn {
+      flex: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .empty-state .icon {
+      font-size: 2.5rem;
+      margin-bottom: 0.75rem;
+      opacity: 0.4;
+      display: block;
+    }
+    .spinner {
+      border: 3px solid var(--border);
+      border-top: 3px solid var(--accent);
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .date-cell { font-size: 0.82rem; color: var(--text-secondary); font-weight: 600; }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 8, 16, 0.85);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 300;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+      animation: fadeIn 0.2s ease;
+      overflow-y: auto;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: 20px;
+      padding: 2rem;
+      max-width: 560px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-lg);
+      animation: modalIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      margin: auto;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: scale(0.95) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .modal-card::-webkit-scrollbar { width: 6px; }
+    .modal-card::-webkit-scrollbar-track { background: transparent; }
+    .modal-card::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+    .modal-card::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    .date-display {
+      padding: 0.8rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-weight: 700;
+      font-size: 0.82rem;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .date-display .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .radio-option {
+      flex: 1;
+      min-width: 140px;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.85rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.88rem;
+      font-weight: 600;
+    }
+    .radio-option:hover {
+      border-color: var(--text-muted);
+      background: var(--bg-hover);
+    }
+    .radio-option input[type="radio"] {
+      width: 1.1rem;
+      height: 1.1rem;
+      accent-color: var(--accent);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .radio-option.checked {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+      color: var(--accent);
+    }
+
+    .grades-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0.85rem;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm);
+      background: var(--bg-elevated);
+    }
+    .grade-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0.9rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-light);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+    .grade-chip:hover {
+      border-color: var(--text-muted);
+      color: var(--text-primary);
+    }
+    .grade-chip input[type="checkbox"] {
+      display: none;
+    }
+    .grade-chip.selected {
+      background: var(--accent-glow);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    @media (max-width: 900px) {
+      .sidebar {
+        position: relative;
+        width: 100%;
+        padding: 1.25rem 1rem;
+        border-left: none;
+        border-bottom: 1px solid var(--border);
+        flex-direction: row;
+        align-items: center;
+        gap: 1rem;
+        overflow-y: visible;
+      }
+      .sidebar-brand { margin-bottom: 0; padding: 0; flex-shrink: 0; }
+      .sidebar-brand-text { display: none; }
+      .sidebar-nav {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        gap: 0.4rem;
+        flex: 1;
+        overflow-x: auto;
+        padding-bottom: 0.25rem;
+      }
+      .sidebar-nav li { flex-shrink: 0; }
+      .sidebar-nav li a {
+        padding: 0.65rem 0.9rem;
+        font-size: 0.82rem;
+        gap: 0.5rem;
+      }
+      .sidebar-nav li a.active::before { display: none; }
+      .sidebar-footer { display: none; }
+      .main-content { margin-right: 0; padding: 1.5rem 1rem 2.5rem; }
+      .topbar { margin-bottom: 1.5rem; }
+      .topbar-title { font-size: 1.3rem; }
+    }
+
+    @media (max-width: 600px) {
+      .login-card { padding: 2rem 1.5rem; }
+      .card { padding: 1.25rem; }
+      .stat-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .stat-card { padding: 1.1rem 0.75rem; }
+      .stat-card h3 { font-size: 1.5rem; }
+      .stat-card .stat-icon { font-size: 1.2rem; }
+      .stat-card p { font-size: 0.7rem; }
+      .student-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.6rem;
+        padding: 0.85rem 1rem;
+      }
+      .student-row .meta { width: 100%; justify-content: space-between; }
+      .table th, .table td { padding: 0.6rem 0.5rem; font-size: 0.8rem; }
+      .input-group { flex-direction: column; align-items: stretch; }
+      .input-group input, .input-group select { min-width: 100%; }
+      .date-display { justify-content: center; }
+      .modal-card { padding: 1.25rem; border-radius: 16px; }
+      .modal-card .card-header { flex-direction: column; align-items: flex-start; }
+      .topbar { flex-direction: column; align-items: stretch; }
+      .topbar-actions { justify-content: space-between; }
+      .user-chip { font-size: 0.78rem; padding: 0.35rem 0.7rem 0.35rem 0.4rem; }
+      .user-avatar { width: 26px; height: 26px; font-size: 0.7rem; }
+      .btn { padding: 0.65rem 1rem; font-size: 0.82rem; }
+      .btn-sm { padding: 0.5rem 0.85rem; font-size: 0.78rem; }
+      .toast { font-size: 0.82rem; padding: 0.85rem 1.1rem; }
+      .toast-container { top: 1rem; }
+      .admin-grid { grid-template-columns: 1fr; }
+      .radio-group { flex-direction: column; }
+    }
+
+    @media (max-width: 400px) {
+      .stat-grid { grid-template-columns: 1fr; }
+      .card-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="toast-container" class="toast-container"></div>
+
+<div id="login-page" class="login-page">
+  <div class="login-card">
+    <div class="login-logo">⛪</div>
+    <h1>نظام الحضور و الغياب</h1>
+    <p class="subtitle">سجّل دخولك للمتابعة</p>
+    <div id="login-alert" class="alert alert-error hidden"></div>
+    <form id="login-form">
+      <div class="form-group">
+        <label>اسم المستخدم</label>
+        <input type="text" id="login-username" required placeholder="admin" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>كلمة المرور</label>
+        <input type="password" id="login-password" required placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button type="submit" class="btn btn-primary w-full mt-2" style="padding:0.9rem; font-size:0.95rem;">تسجيل الدخول</button>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon">⛪</div>
+      <div class="sidebar-brand-text">
+        <strong>نظام الحضور و الغياب</strong>
+        <span>كاتدرائية السمائيين</span>
+      </div>
+    </div>
+    <ul class="sidebar-nav">
+      <li>
+        <a href="#" onclick="showSection('attendance'); return false;" class="nav-link active" id="nav-attendance">
+          <span class="nav-icon">📋</span>
+          <span>تسجيل الحضور</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection('students'); return false;" class="nav-link" id="nav-students">
+          <span class="nav-icon">📥</span>
+          <span>إدارة الطلاب</span>
+        </a>
+      </li>
+      <li id="nav-admins-li" class="hidden">
+        <a href="#" onclick="showSection('admins'); return false;" class="nav-link" id="nav-admins">
+          <span class="nav-icon">👥</span>
+          <span>إدارة الخدام</span>
+        </a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection('stats'); return false;" class="nav-link" id="nav-stats">
+          <span class="nav-icon">📊</span>
+          <span>التقارير</span>
+        </a>
+      </li>
+    </ul>
+  </aside>
+
+  <main class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">
+        <span id="topbar-icon">📋</span>
+        <span id="topbar-text">تسجيل الحضور</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="user-chip">
+          <span class="user-avatar" id="nav-user-avatar">A</span>
+          <span id="nav-user">—</span>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="logout()">خروج</button>
+      </div>
+    </div>
+
+    <section id="section-attendance" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📋 تسجيل الحضور</span>
+        </div>
+
+        <div class="input-group mb-3">
+          <select id="att-grade-select">
+            <option value="">اختر الصف</option>
+          </select>
+          <div class="date-display">
+            <span class="dot"></span>
+            الجمعة القريبة: <span id="nearest-friday">—</span>
+          </div>
+        </div>
+
+        <div class="form-group mb-2">
+          <label>🔍 البحث عن طالب</label>
+          <input type="text" id="att-search" placeholder="ابحث باسم الطالب...">
+        </div>
+
+        <div id="att-students-list" class="mb-2"></div>
+
+        <div class="mt-2">
+          <button class="btn btn-primary" onclick="saveAttendance()" style="padding:0.9rem 2.5rem;">💾 حفظ الحضور المحدد</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-students" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📥 إدارة الطلاب – رفع ملف إكسل</span>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1.25rem;">ارفع ملف إكسل يحتوي على عمود واحد فقط بدون عنوان يحتوي على أسماء الطلاب</p>
+
+        <div class="input-group mb-3">
+          <select id="students-grade-select">
+            <option value="">اختر الصف</option>
+          </select>
+        </div>
+
+        <div class="form-group mb-3">
+          <label>📤 ملف إكسل للطلاب (عمود واحد بدون عنوان)</label>
+          <div style="display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center;">
+            <input type="file" id="students-upload-file" accept=".xls,.xlsx" style="flex:1; padding:0.55rem; border:1px solid var(--border-light); border-radius:10px; min-width:180px;">
+            <button class="btn btn-primary btn-sm" onclick="uploadStudentsExcel()">رفع الملف</button>
+          </div>
+        </div>
+
+        <div id="students-result" class="mb-3"></div>
+
+        <div class="card" style="margin-bottom:0;">
+          <div class="card-header">
+            <span class="card-title">📋 الطلاب المسجلون</span>
+          </div>
+          <div class="input-group mb-2">
+            <input type="text" id="students-search" placeholder="ابحث باسم الطالب...">
+          </div>
+          <div id="students-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="section-admins" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">👥 إدارة الخدام</span>
+          <button class="btn btn-primary btn-sm" onclick="openAdminModal()">+ إضافة خادم جديد</button>
+        </div>
+        <div id="admins-list" class="admin-grid"></div>
+      </div>
+    </section>
+
+    <section id="section-stats" class="hidden">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">📊 التقارير والإحصائيات</span>
+        </div>
+        <div class="input-group mb-3">
+          <select id="stat-grade-select">
+            <option value="">اختر الصف</option>
+          </select>
+          <input type="text" id="stat-search" placeholder="ابحث باسم الطالب...">
+        </div>
+        <div id="stats-container"></div>
+      </div>
+    </section>
+
+    <div id="student-modal" class="modal-overlay hidden">
+      <div class="modal-card">
+        <div class="card-header" style="margin-bottom:1rem;">
+          <span class="card-title" id="modal-student-name">تفاصيل الطالب</span>
+          <button class="btn btn-secondary btn-sm" onclick="closeStudentModal()">✕ إغلاق</button>
+        </div>
+        <div style="display:flex; gap:0.75rem; margin-bottom:1.25rem; justify-content:center; flex-wrap:wrap;">
+          <span class="badge badge-blue" id="modal-student-grade">—</span>
+          <span class="badge badge-green" id="modal-student-count">0 مرة</span>
+        </div>
+        <div class="form-group mb-2">
+          <label>🔎 البحث بالتاريخ</label>
+          <input type="date" id="modal-date-search">
+        </div>
+        <div id="modal-dates-list"></div>
+      </div>
+    </div>
+
+    <div id="admin-modal" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width:520px;">
+        <div class="card-header" style="margin-bottom:1.25rem;">
+          <span class="card-title" id="admin-modal-title">إضافة خادم جديد</span>
+          <button class="btn btn-secondary btn-sm" onclick="closeAdminModal()">✕ إغلاق</button>
+        </div>
+        <form id="admin-modal-form" onsubmit="handleAdminSubmit(event)">
+          <input type="hidden" id="admin-modal-edit-id">
+
+          <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="admin-modal-username" placeholder="اسم المستخدم" required autocomplete="off">
+          </div>
+
+          <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="admin-modal-password" placeholder="كلمة المرور" autocomplete="new-password">
+            <p id="admin-modal-password-hint" class="hidden" style="color:var(--text-muted); font-size:0.78rem; margin-top:0.4rem;">اترك الحقل فارغاً للإبقاء على كلمة المرور الحالية</p>
+          </div>
+
+          <div class="form-group">
+            <label>نوع الخادم</label>
+            <div class="radio-group">
+              <label class="radio-option checked" id="admin-role-normal-label">
+                <input type="radio" name="admin-modal-role" value="admin" checked onchange="handleRoleChange()">
+                <span>👤 خادم عادي</span>
+              </label>
+              <label class="radio-option" id="admin-role-lead-label">
+                <input type="radio" name="admin-modal-role" value="lead" onchange="handleRoleChange()">
+                <span>👑 خادم رئيسي</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="admin-modal-grades-group">
+            <label>الصفحات المسموح بها</label>
+            <div class="grades-picker" id="admin-modal-grades"></div>
+          </div>
+
+          <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1.25rem;">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="closeAdminModal()">إلغاء</button>
+            <button type="submit" class="btn btn-primary btn-sm" id="admin-modal-submit">حفظ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="excel-preview-modal" class="modal-overlay hidden">
+      <div class="modal-card" style="max-width:600px;">
+        <div class="card-header" style="margin-bottom:1.25rem;">
+          <span class="card-title">📋 معاينة الطلاب من ملف إكسل</span>
+          <button class="btn btn-secondary btn-sm" onclick="closeExcelPreviewModal()">✕ إغلاق</button>
+        </div>
+        <div class="form-group mb-2">
+          <label>الصف:</label>
+          <select id="excel-preview-grade" style="width:100%; padding:0.55rem; border:1px solid var(--border-light); border-radius:8px;"></select>
+        </div>
+        <div class="form-group mb-2">
+          <label>عدد الطلاب: <span id="excel-preview-count">0</span></label>
+        </div>
+        <div style="max-height:400px; overflow-y:auto; border:1px solid var(--border-light); border-radius:10px; background:var(--bg-elevated); padding:0.75rem;" id="excel-preview-list">
+        </div>
+        <div style="display:flex; gap:0.75rem; justify-content:flex-end; margin-top:1.25rem;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeExcelPreviewModal()">إلغاء</button>
+          <button type="button" class="btn btn-primary btn-sm" onclick="confirmExcelUpload()">تأكيد وإضافة الطلاب</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const API = '/api';
+  let currentUser = null;
+  let allStudents = [];
+  let allGrades = [];
+  let selectedAttendance = new Set();
+  let currentAttendanceStudents = [];
+  let currentModalStudent = null;
+  let currentModalAttendances = [];
+  let editingAdminId = null;
+  let pendingExcelStudents = [];
+  let pendingExcelGrade = '';
+
+  function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = 'toast toast-' + type;
+    const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+    toast.innerHTML = '<span>' + (icons[type] || '') + '</span><span>' + escapeHtml(message) + '</span>';
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('toast-out');
+      setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+    }, duration);
+  }
+
+  function show(id) { document.getElementById(id).classList.remove('hidden'); }
+  function hide(id) { document.getElementById(id).classList.add('hidden'); }
+
+  function showSection(section) {
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    show('section-' + section);
+    document.getElementById('nav-' + section).classList.add('active');
+    const topbarIcon = document.getElementById('topbar-icon');
+    const topbarText = document.getElementById('topbar-text');
+    const titles = {
+      attendance: { icon: '📋', text: 'تسجيل الحضور' },
+      students: { icon: '📥', text: 'إدارة الطلاب' },
+      admins: { icon: '👥', text: 'إدارة الخدام' },
+      stats: { icon: '📊', text: 'التقارير والإحصائيات' }
+    };
+    if (titles[section]) {
+      topbarIcon.textContent = titles[section].icon;
+      topbarText.textContent = titles[section].text;
+    }
+    if (section === 'attendance') loadAttendance();
+    if (section === 'stats') loadStats();
+    if (section === 'students') loadStudents();
+    if (section === 'admins') loadAdmins();
+  }
+
+  async function init() {
+    try {
+      const res = await fetch(API + '/auth/me');
+      if (res.ok) {
+        currentUser = await res.json();
+        const username = currentUser.username || 'مستخدم';
+        document.getElementById('nav-user').textContent = username;
+        document.getElementById('nav-user-avatar').textContent = username.charAt(0).toUpperCase();
+        if (currentUser.isLeadAdmin) {
+          document.getElementById('nav-admins-li').classList.remove('hidden');
+        }
+        hide('login-page');
+        show('app');
+        showSection('attendance');
+      } else {
+        show('login-page');
+        hide('app');
+      }
+    } catch (e) {
+      show('login-page');
+      hide('app');
+    }
+  }
+
+  async function login() {
+    const u = document.getElementById('login-username').value.trim();
+    const p = document.getElementById('login-password').value;
+    const alertBox = document.getElementById('login-alert');
+    if (!u || !p) {
+      alertBox.textContent = 'الرجاء إدخال اسم المستخدم وكلمة المرور';
+      alertBox.classList.remove('hidden');
+      return;
+    }
+    try {
+      const res = await fetch(API + '/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alertBox.classList.add('hidden');
+        init();
+      } else {
+        alertBox.textContent = data.error || 'فشل تسجيل الدخول';
+        alertBox.classList.remove('hidden');
+      }
+    } catch (e) {
+      alertBox.textContent = 'خطأ في الاتصال بالخادم';
+      alertBox.classList.remove('hidden');
+    }
+  }
+
+  async function logout() {
+    try { await fetch(API + '/auth/logout', { method: 'POST' }); } catch (e) {}
+    location.reload();
+  }
+
+  document.getElementById('login-form').addEventListener('submit', e => {
+    e.preventDefault();
+    login();
+  });
+
+  async function loadStudentsForAttendance() {
+    const grade = document.getElementById('att-grade-select').value;
+    if (!grade) {
+      document.getElementById('att-students-list').innerHTML = '<div class="empty-state"><span class="icon">📭</span>اختر الصف لعرض الطلاب</div>';
+      return;
+    }
+    try {
+      const res = await fetch(API + '/attendance/students?grade=' + encodeURIComponent(grade));
+      const students = await res.json();
+      currentAttendanceStudents = students;
+      renderAttendanceList(students);
+    } catch (e) {
+      document.getElementById('att-students-list').innerHTML = '<div class="empty-state"><span class="icon">⚠️</span>خطأ في تحميل الطلاب</div>';
+    }
+  }
+
+  function renderAttendanceList(studentsToRender) {
+    const grade = document.getElementById('att-grade-select').value;
+    const search = document.getElementById('att-search').value.toLowerCase();
+    const list = document.getElementById('att-students-list');
+    let students = studentsToRender;
+    if (!students) {
+      students = currentAttendanceStudents.filter(s => s.grade === grade);
+    }
+    students = students.filter(s => s.name.toLowerCase().indexOf(search) >= 0);
+    const nearestFri = getNearestFriday();
+    list.innerHTML = '';
+    if (students.length === 0) {
+      list.innerHTML = '<div class="empty-state"><span class="icon">🔍</span>لا يوجد طلاب مطابقون</div>';
+      return;
+    }
+    students.forEach(s => {
+      const already = s.attendances.some(d => new Date(d).toISOString().split('T')[0] === nearestFri);
+      const isSelected = selectedAttendance.has(s._id);
+      const div = document.createElement('div');
+      div.className = 'student-row';
+      div.innerHTML = `
+        <label class="checkbox-group" style="flex:1; min-width:0;">
+          <input type="checkbox" ${isSelected || already ? 'checked' : ''} onchange="toggleSelect('${s._id}', this)" ${already ? 'disabled' : ''}>
+          <span class="name">${escapeHtml(s.name)}</span>
+          ${already ? '<span class="badge badge-green">✓ حاضر</span>' : ''}
+        </label>
+        <div class="meta">
+          <span class="badge badge-gray">${s.attendances.length} مرة</span>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  function toggleSelect(id, checkbox) {
+    if (checkbox.checked) selectedAttendance.add(id);
+    else selectedAttendance.delete(id);
+    saveSelectionToLocalStorage();
+    renderAttendanceList();
+  }
+
+  function saveSelectionToLocalStorage() {
+    const grade = document.getElementById('att-grade-select').value;
+    if (!grade) return;
+    localStorage.setItem('attendance_selection_' + grade, JSON.stringify(Array.from(selectedAttendance)));
+  }
+
+  function loadSelectionFromLocalStorage() {
+    const grade = document.getElementById('att-grade-select').value;
+    if (!grade) return;
+    const saved = localStorage.getItem('attendance_selection_' + grade);
+    if (saved) {
+      try {
+        selectedAttendance = new Set(JSON.parse(saved));
+      } catch (e) { selectedAttendance = new Set(); }
+    } else {
+      selectedAttendance = new Set();
+    }
+  }
+
+  async function saveAttendance() {
+    const grade = document.getElementById('att-grade-select').value;
+    const nearestFri = getNearestFriday();
+    const date = nearestFri;
+    const d = new Date(date);
+    if (d.getDay() !== 5) {
+      showToast('هذا اليوم ليس يوم جمعة', 'error', 3000);
+      return;
+    }
+    if (!grade) {
+      showToast('اختر الصف', 'error', 3000);
+      return;
+    }
+    const ids = Array.from(selectedAttendance);
+    if (ids.length === 0) {
+      showToast('اختر طلاباً أولاً', 'error', 3000);
+      return;
+    }
+    try {
+      const res = await fetch(API + '/attendance/mark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ studentIds: ids, date: date })
+      });
+      if (res.ok) {
+        selectedAttendance.clear();
+        localStorage.removeItem('attendance_selection_' + grade);
+        loadStudentsForAttendance();
+        showToast('تم تسجيل الحضور بنجاح', 'success', 3000);
+      } else {
+        showToast('فشل تسجيل الحضور', 'error', 3000);
+      }
+    } catch (e) {
+      showToast('خطأ في الاتصال', 'error', 3000);
+    }
+  }
+
+  async function loadAttendance() {
+    try {
+      const gradesRes = await fetch(API + '/grades');
+      allGrades = await gradesRes.json();
+      const select = document.getElementById('att-grade-select');
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">اختر الصف</option>';
+      allGrades.forEach(g => {
+        select.innerHTML += `<option value="${g.name}">${escapeHtml(g.arabicName)}</option>`;
+      });
+      if (currentVal) select.value = currentVal;
+      const nearestFri = getNearestFriday();
+      document.getElementById('nearest-friday').textContent = new Date(nearestFri).toLocaleDateString('ar-SA');
+      select.onchange = function() {
+        loadSelectionFromLocalStorage();
+        loadStudentsForAttendance();
+      };
+      document.getElementById('att-search').oninput = () => renderAttendanceList();
+      loadSelectionFromLocalStorage();
+      loadStudentsForAttendance();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function getNearestFriday() {
+    const d = new Date();
+    const day = d.getDay();
+    if (day === 5) {
+      return d.toISOString().split('T')[0];
+    }
+    let diff = (5 - day + 7) % 7;
+    d.setDate(d.getDate() + diff);
+    return d.toISOString().split('T')[0];
+  }
+
+  async function loadStats() {
+    try {
+      const gradesRes = await fetch(API + '/grades');
+      allGrades = await gradesRes.json();
+      const gradeSelect = document.getElementById('stat-grade-select');
+      const currentValue = gradeSelect.value;
+      if (gradeSelect.children.length <= 1) {
+        gradeSelect.innerHTML = '<option value="">اختر الصف</option>';
+        allGrades.forEach(g => {
+          gradeSelect.innerHTML += `<option value="${g.name}">${escapeHtml(g.arabicName)}</option>`;
+        });
+        gradeSelect.value = currentValue;
+      }
+      const grade = document.getElementById('stat-grade-select').value;
+      const search = document.getElementById('stat-search').value.toLowerCase();
+      const url = grade ? API + '/attendance/students?grade=' + encodeURIComponent(grade) : API + '/attendance/students';
+      const res = await fetch(url);
+      const students = await res.json();
+      const filtered = students.filter(s => s.name.toLowerCase().indexOf(search) >= 0);
+      const container = document.getElementById('stats-container');
+      container.innerHTML = '';
+      const total = filtered.length;
+      let totalAttended = 0;
+      let neverAttended = 0;
+      const today = new Date().toISOString().split('T')[0];
+      let todayAttended = 0;
+      filtered.forEach(s => {
+        totalAttended += s.attendances.length;
+        if (s.attendances.length === 0) neverAttended++;
+        s.attendances.forEach(d => {
+          if (new Date(d).toISOString().split('T')[0] === today) todayAttended++;
+        });
+      });
+      container.innerHTML = `
+        <div class="stat-grid">
+          <div class="stat-card">
+            <span class="stat-icon">👥</span>
+            <h3>${total}</h3>
+            <p>إجمالي الطلاب</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">✅</span>
+            <h3>${todayAttended}/${total}</h3>
+            <p>حاضرون اليوم</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">📈</span>
+            <h3>${totalAttended}</h3>
+            <p>إجمالي مرات الحضور</p>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">⚠️</span>
+            <h3>${neverAttended}</h3>
+            <p>لم يحضر أبداً</p>
+          </div>
+        </div>
+        <table class="table">
+          <thead><tr><th>الاسم</th><th>الصف</th><th>مرات الحضور</th></tr></thead>
+          <tbody id="stats-tbody"></tbody>
+        </table>
+      `;
+      const tbody = document.getElementById('stats-tbody');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state"><span class="icon">📭</span>لا يوجد طلاب</td></tr>';
+      } else {
+        filtered.forEach(s => {
+          const tr = document.createElement('tr');
+          tr.style.cursor = 'pointer';
+          tr.dataset.id = s._id;
+          tr.dataset.name = escapeHtml(s.name);
+          tr.dataset.grade = s.grade;
+          tr.dataset.attendances = JSON.stringify(s.attendances);
+          tr.onclick = function() {
+            openStudentModal(this.dataset.id, this.dataset.name, this.dataset.grade, JSON.parse(this.dataset.attendances));
+          };
+          tr.innerHTML = `<td>${escapeHtml(s.name)}</td><td>${getGradeArabic(s.grade)}</td><td><span class="badge badge-blue">${s.attendances.length} مرة</span></td>`;
+          tbody.appendChild(tr);
+        });
+      }
+      gradeSelect.onchange = loadStats;
+      document.getElementById('stat-search').oninput = loadStats;
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function openStudentModal(id, name, grade, attendances) {
+    currentModalStudent = { id, name, grade };
+    currentModalAttendances = attendances;
+    document.getElementById('modal-student-name').textContent = name;
+    document.getElementById('modal-student-grade').textContent = getGradeArabic(grade);
+    document.getElementById('modal-student-count').textContent = attendances.length + ' مرة';
+    renderModalDates(attendances, '');
+    document.getElementById('modal-date-search').value = '';
+    document.getElementById('student-modal').classList.remove('hidden');
+  }
+
+  function renderModalDates(attendances, selectedDate) {
+    const dateItems = attendances.map(d => {
+      const dateObj = new Date(d);
+      return { iso: dateObj.toISOString().split('T')[0], display: dateObj.toLocaleDateString('ar-SA') };
+    }).sort((a, b) => b.iso.localeCompare(a.iso));
+
+    let filtered = dateItems;
+    if (selectedDate !== '') {
+      filtered = dateItems.filter(item => item.iso === selectedDate);
+    }
+
+    let html = '<div style="max-height:300px; overflow-y:auto;"><table class="table"><thead><tr><th>#</th><th>تاريخ الحضور</th></tr></thead><tbody>';
+
+    if (dateItems.length === 0) {
+      html += '<tr><td colspan="2" class="empty-state"><span class="icon">📭</span>لا يوجد سجل حضور لهذا الطالب</td></tr>';
+    } else if (filtered.length === 0) {
+      html += '<tr><td colspan="2" class="empty-state" style="color:var(--danger);"><span class="icon">❌</span>لم يحضر في هذا التاريخ</td></tr>';
+    } else {
+      filtered.forEach((item, i) => {
+        html += `<tr><td>${i + 1}</td><td class="date-cell" data-iso="${item.iso}">${item.display}</td></tr>`;
+      });
+    }
+
+    html += '</tbody></table></div>';
+    document.getElementById('modal-dates-list').innerHTML = html;
+  }
+
+  function closeStudentModal() {
+    document.getElementById('student-modal').classList.add('hidden');
+    currentModalStudent = null;
+    currentModalAttendances = [];
+  }
+
+  document.getElementById('modal-date-search').addEventListener('input', function() {
+    const selectedDate = this.value;
+    if (!currentModalStudent) return;
+    renderModalDates(currentModalAttendances, selectedDate);
+  });
+
+  document.getElementById('student-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeStudentModal();
+  });
+
+  async function loadStudents() {
+    try {
+      const gradesRes = await fetch(API + '/grades');
+      allGrades = await gradesRes.json();
+      const select = document.getElementById('students-grade-select');
+      const currentVal = select.value;
+      select.innerHTML = '<option value="">اختر الصف</option>';
+      allGrades.forEach(g => {
+        if (currentUser.isLeadAdmin || (currentUser.allowedGrades && currentUser.allowedGrades.includes(g.name))) {
+          select.innerHTML += `<option value="${g.name}">${escapeHtml(g.arabicName)}</option>`;
+        }
+      });
+      if (currentVal && allGrades.some(g => g.name === currentVal)) select.value = currentVal;
+      select.onchange = loadStudentsList;
+      document.getElementById('students-search').oninput = loadStudentsList;
+      loadStudentsList();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  async function loadStudentsList() {
+    const grade = document.getElementById('students-grade-select').value;
+    const search = document.getElementById('students-search').value.toLowerCase();
+    if (!grade) {
+      document.getElementById('students-list').innerHTML = '<div class="empty-state"><span class="icon">📭</span>اختر الصف لعرض الطلاب</div>';
+      return;
+    }
+    try {
+      const res = await fetch(API + '/attendance/students?grade=' + encodeURIComponent(grade));
+      const students = await res.json();
+      const filtered = students.filter(s => s.name.toLowerCase().indexOf(search) >= 0);
+      const list = document.getElementById('students-list');
+      list.innerHTML = '';
+      if (filtered.length === 0) {
+        list.innerHTML = '<div class="empty-state"><span class="icon">🔍</span>لا يوجد طلاب مطابقون</div>';
+        return;
+      }
+      filtered.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'student-row';
+        div.innerHTML = `
+          <span class="name">${escapeHtml(s.name)}</span>
+          <div class="meta">
+            <span class="badge badge-blue">${s.attendances.length} مرة</span>
+          </div>
+        `;
+        list.appendChild(div);
+      });
+    } catch (e) {
+      document.getElementById('students-list').innerHTML = '<div class="empty-state"><span class="icon">⚠️</span>خطأ في تحميل الطلاب</div>';
+    }
+  }
+
+  async function uploadStudentsExcel() {
+    const grade = document.getElementById('students-grade-select').value;
+    const fileInput = document.getElementById('students-upload-file');
+    const file = fileInput.files[0];
+    if (!grade) {
+      showToast('اختر الصف أولاً', 'error', 3000);
+      return;
+    }
+    if (!file) {
+      showToast('اختر ملف إكسل', 'error', 3000);
+      return;
+    }
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('grade', grade);
+    try {
+      const res = await fetch(API + '/grades/upload-parse', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (!res.ok) {
+        showToast(data.error || 'فشل قراءة الملف', 'error', 3000);
+        return;
+      }
+      pendingExcelStudents = data.names || [];
+      pendingExcelGrade = grade;
+      showExcelPreviewModal();
+    } catch (e) {
+      showToast('خطأ في الاتصال', 'error', 3000);
+    }
+  }
+
+  function showExcelPreviewModal() {
+    const gradeSelect = document.getElementById('excel-preview-grade');
+    gradeSelect.innerHTML = '<option value="">اختر الصف</option>';
+    allGrades.forEach(g => {
+      const selected = g.name === pendingExcelGrade ? 'selected' : '';
+      gradeSelect.innerHTML += `<option value="${g.name}" ${selected}>${escapeHtml(g.arabicName)}</option>`;
+    });
+    gradeSelect.value = pendingExcelGrade;
+    document.getElementById('excel-preview-count').textContent = pendingExcelStudents.length;
+    renderExcelPreviewList();
+    document.getElementById('excel-preview-modal').classList.remove('hidden');
+  }
+
+  function closeExcelPreviewModal() {
+    document.getElementById('excel-preview-modal').classList.add('hidden');
+    pendingExcelStudents = [];
+    pendingExcelGrade = '';
+  }
+
+  function renderExcelPreviewList() {
+    const container = document.getElementById('excel-preview-list');
+    container.innerHTML = '';
+    if (pendingExcelStudents.length === 0) {
+      container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:2rem;">لا يوجد طلاب</div>';
+      return;
+    }
+    pendingExcelStudents.forEach((name, idx) => {
+      const div = document.createElement('div');
+      div.className = 'excel-preview-item';
+      div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:0.5rem; border-bottom:1px solid var(--border-light);';
+      div.innerHTML = `
+        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${idx + 1}. ${escapeHtml(name)}</span>
+        <button type="button" class="btn btn-danger btn-xs" onclick="removeExcelStudent(${idx})" style="padding:0.25rem 0.5rem; font-size:0.7rem;">حذف</button>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  function removeExcelStudent(index) {
+    pendingExcelStudents.splice(index, 1);
+    document.getElementById('excel-preview-count').textContent = pendingExcelStudents.length;
+    renderExcelPreviewList();
+  }
+
+  async function confirmExcelUpload() {
+    const grade = document.getElementById('excel-preview-grade').value;
+    if (!grade) {
+      showToast('اختر الصف', 'error', 3000);
+      return;
+    }
+    pendingExcelGrade = grade;
+    if (pendingExcelStudents.length === 0) {
+      showToast('لا يوجد طلاب للإضافة', 'error', 3000);
+      return;
+    }
+    try {
+      const res = await fetch(API + '/grades/upload-confirmed', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grade: grade, names: pendingExcelStudents })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast('تم إضافة ' + (data.added || 0) + ' طالب بنجاح', 'success', 3000);
+        closeExcelPreviewModal();
+        loadStudentsList();
+      } else {
+        showToast(data.error || 'فشل الإضافة', 'error', 3000);
+      }
+    } catch (e) {
+      showToast('خطأ في الاتصال', 'error', 3000);
+    }
+  }
+
+  document.getElementById('excel-preview-grade').addEventListener('change', function() {
+    pendingExcelGrade = this.value;
+  });
+
+  document.getElementById('student-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeStudentModal();
+  });
+
+  function handleRoleChange() {
+    const isLead = document.querySelector('input[name="admin-modal-role"]:checked').value === 'lead';
+    const normalLabel = document.getElementById('admin-role-normal-label');
+    const leadLabel = document.getElementById('admin-role-lead-label');
+    const gradesGroup = document.getElementById('admin-modal-grades-group');
+    normalLabel.classList.toggle('checked', !isLead);
+    leadLabel.classList.toggle('checked', isLead);
+    if (isLead) {
+      gradesGroup.style.opacity = '0.5';
+      gradesGroup.style.pointerEvents = 'none';
+      document.querySelectorAll('#admin-modal-grades input[type="checkbox"]').forEach(cb => cb.checked = false);
+    } else {
+      gradesGroup.style.opacity = '1';
+      gradesGroup.style.pointerEvents = 'auto';
+    }
+  }
+
+  function renderAdminGradesPicker(selectedGrades) {
+    const container = document.getElementById('admin-modal-grades');
+    container.innerHTML = '';
+    allGrades.forEach(g => {
+      const isSelected = selectedGrades.includes(g.name);
+      const label = document.createElement('label');
+      label.className = 'grade-chip' + (isSelected ? ' selected' : '');
+      label.innerHTML = `<input type="checkbox" value="${g.name}" ${isSelected ? 'checked' : ''}> <span>${escapeHtml(g.arabicName)}</span>`;
+      const checkbox = label.querySelector('input');
+      checkbox.addEventListener('change', () => {
+        label.classList.toggle('selected', checkbox.checked);
+      });
+      container.appendChild(label);
+    });
+  }
+
+  function openAdminModal(adminData = null) {
+    editingAdminId = adminData ? adminData._id : null;
+    const title = document.getElementById('admin-modal-title');
+    const submitBtn = document.getElementById('admin-modal-submit');
+    const passwordInput = document.getElementById('admin-modal-password');
+    const passwordHint = document.getElementById('admin-modal-password-hint');
+    const usernameInput = document.getElementById('admin-modal-username');
+    const roleInputs = document.querySelectorAll('input[name="admin-modal-role"]');
+
+    if (adminData) {
+      title.textContent = 'تعديل الخادم';
+      submitBtn.textContent = 'حفظ التعديلات';
+      usernameInput.value = adminData.username;
+      passwordInput.value = '';
+      passwordInput.required = false;
+      passwordHint.classList.remove('hidden');
+      if (adminData.isLeadAdmin) {
+        roleInputs.forEach(r => r.checked = r.value === 'lead');
+      } else {
+        roleInputs.forEach(r => r.checked = r.value === 'admin');
+      }
+      renderAdminGradesPicker(adminData.allowedGrades || []);
+    } else {
+      title.textContent = 'إضافة خادم جديد';
+      submitBtn.textContent = 'حفظ';
+      usernameInput.value = '';
+      passwordInput.value = '';
+      passwordInput.required = true;
+      passwordHint.classList.add('hidden');
+      roleInputs.forEach(r => r.checked = r.value === 'admin');
+      renderAdminGradesPicker([]);
+    }
+    handleRoleChange();
+    document.getElementById('admin-modal').classList.remove('hidden');
+  }
+
+  function closeAdminModal() {
+    document.getElementById('admin-modal').classList.add('hidden');
+    editingAdminId = null;
+  }
+
+  document.getElementById('admin-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeAdminModal();
+  });
+
+  async function handleAdminSubmit(e) {
+    e.preventDefault();
+    const username = document.getElementById('admin-modal-username').value.trim();
+    const password = document.getElementById('admin-modal-password').value;
+    const role = document.querySelector('input[name="admin-modal-role"]:checked').value;
+    const isLead = role === 'lead';
+    const allowedGrades = isLead ? [] : Array.from(document.querySelectorAll('#admin-modal-grades input[type="checkbox"]:checked')).map(cb => cb.value);
+
+    if (!username) { showToast('اسم المستخدم مطلوب', 'error'); return; }
+    if (!editingAdminId && !password) { showToast('كلمة المرور مطلوبة', 'error'); return; }
+    if (!isLead && allowedGrades.length === 0) { showToast('اختر صفاً واحداً على الأقل', 'error'); return; }
+
+    const payload = { username, allowedGrades, isLeadAdmin: isLead };
+    if (password) payload.password = password;
+
+    try {
+      let res;
+      if (editingAdminId) {
+        res = await fetch(API + '/auth/admins/' + editingAdminId, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      } else {
+        res = await fetch(API + '/auth/admins', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+      }
+      const data = await res.json();
+      if (res.ok) {
+        showToast(editingAdminId ? 'تم تعديل الخادم بنجاح' : 'تم إنشاء الخادم بنجاح', 'success');
+        closeAdminModal();
+        loadAdmins();
+      } else {
+        showToast(data.error || 'فشل الحفظ', 'error');
+      }
+    } catch (e) {
+      showToast('خطأ في الاتصال', 'error');
+    }
+  }
+
+  async function loadAdmins() {
+    try {
+      const res = await fetch(API + '/auth/admins');
+      const admins = await res.json();
+      const list = document.getElementById('admins-list');
+      list.innerHTML = '';
+      if (!Array.isArray(admins) || admins.length === 0) {
+        list.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="icon">👥</span>لا يوجد مدراء بعد</div>';
+        return;
+      }
+      admins.forEach(a => {
+        const card = document.createElement('div');
+        card.className = 'admin-card';
+        const isLead = a.isLeadAdmin;
+        const initial = (a.username || '?').charAt(0).toUpperCase();
+        const gradesBadges = isLead
+          ? '<span class="badge badge-purple">جميع الصفوف</span>'
+          : (a.allowedGrades && a.allowedGrades.length > 0
+              ? a.allowedGrades.map(g => `<span class="badge badge-blue">${escapeHtml(getGradeArabic(g))}</span>`).join('')
+              : '<span class="badge badge-gray">لا صفوف</span>');
+        card.innerHTML = `
+          <div class="admin-card-head">
+            <div class="admin-avatar ${isLead ? 'lead' : ''}">${isLead ? '👑' : initial}</div>
+            <div class="admin-info">
+              <strong>${escapeHtml(a.username)}</strong>
+              <span class="role">${isLead ? 'خادم رئيسي' : 'خادم عادي'}</span>
+            </div>
+          </div>
+          <div class="admin-grades">
+            ${gradesBadges}
+          </div>
+          <div class="admin-actions">
+            <button class="btn btn-secondary btn-sm" onclick="handleEditAdminClick('${a._id}')">✏️ تعديل</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAdmin('${a._id}', '${escapeHtml(a.username)}')">🗑️ حذف</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    } catch (e) {
+      console.error(e);
+      document.getElementById('admins-list').innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><span class="icon">⚠️</span>خطأ في تحميل الخدام</div>';
+    }
+  }
+
+  async function handleEditAdminClick(id) {
+    try {
+      const res = await fetch(API + '/auth/admins');
+      const admins = await res.json();
+      const admin = admins.find(a => a._id === id);
+      if (!admin) { showToast('لم يتم العثور على الخادم', 'error'); return; }
+      openAdminModal(admin);
+    } catch (e) {
+      showToast('خطأ في الاتصال', 'error');
+    }
+  }
+
+  async function deleteAdmin(id, username) {
+    if (!confirm('هل تريد حذف الخادم "' + username + '"؟')) return;
+    try {
+      const res = await fetch(API + '/auth/admins/' + id, { method: 'DELETE' });
+      if (res.ok) {
+        showToast('تم حذف الخادم بنجاح', 'success');
+        loadAdmins();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        showToast(data.error || 'فشل الحذف', 'error');
+      }
+    } catch (e) {
+      showToast('خطأ في الاتصال', 'error');
+    }
+  }
+
+  function getGradeArabic(code) {
+    const g = allGrades.find(x => x.name === code);
+    return g ? g.arabicName : code;
+  }
+
+  function escapeHtml(t) {
+    return String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  }
+
+  init();
+</script>
+</body>
+</html>
