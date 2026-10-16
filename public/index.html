@@ -1544,7 +1544,7 @@
       });
       if (currentVal) select.value = currentVal;
       const nearestFri = getNearestFriday();
-      document.getElementById('nearest-friday').textContent = new Date(nearestFri).toLocaleDateString('ar-SA');
+      document.getElementById('nearest-friday').textContent = formatDateUS(nearestFri);
       select.onchange = function() {
         loadSelectionFromLocalStorage();
         loadStudentsForAttendance();
@@ -1566,6 +1566,14 @@
     let diff = (5 - day + 7) % 7;
     d.setDate(d.getDate() + diff);
     return d.toISOString().split('T')[0];
+  }
+
+  function formatDateUS(isoDate) {
+    const d = new Date(isoDate + 'T00:00:00');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${month}/${day}/${year}`;
   }
 
   async function loadStats() {
@@ -1668,7 +1676,7 @@
   function renderModalDates(attendances, selectedDate) {
     const dateItems = attendances.map(d => {
       const dateObj = new Date(d);
-      return { iso: dateObj.toISOString().split('T')[0], display: dateObj.toLocaleDateString('ar-SA') };
+      return { iso: dateObj.toISOString().split('T')[0], display: formatDateUS(dateObj.toISOString().split('T')[0]) };
     }).sort((a, b) => b.iso.localeCompare(a.iso));
 
     let filtered = dateItems;
@@ -1997,8 +2005,12 @@
 
   async function loadAdmins() {
     try {
-      const res = await fetch(API + '/auth/admins');
-      const admins = await res.json();
+      const [gradesRes, adminsRes] = await Promise.all([
+        fetch(API + '/grades'),
+        fetch(API + '/auth/admins')
+      ]);
+      allGrades = await gradesRes.json();
+      const admins = await adminsRes.json();
       const list = document.getElementById('admins-list');
       list.innerHTML = '';
       if (!Array.isArray(admins) || admins.length === 0) {
